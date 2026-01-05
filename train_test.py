@@ -240,3 +240,75 @@ for building in building_lst:
           if epoch % 10 == 0:
               print(f"Epoch {epoch:03d}: G_loss={g_loss:.4f}, D_loss={d_loss:.4f}")
               generator.save(f'pre_trained_model/generator_{building}.h5')
+
+## test, in another code block ##
+
+import pandas as pd
+import matplotlib.pyplot as plt
+from keras.models import load_model
+
+building_lst = ['AT_SFH']
+#['AT_SFH', 'AT_COM', 'CH_SFH', 'CH_COM', 'DE_SFH', 'DE_COM'] 
+
+pred_hour = 24
+length = 24*120
+windows_length = 24
+variable_num = 4
+temporal_num = 1
+epoch = 200
+cnt = 0
+
+def test(building, num):
+    generator = load_model(f'/kaggle/working/pre_trained_model/generator_{building}.h5')   
+    # _{building}_{epoch}.h5
+
+    generator.summary()
+
+    test_for_plot = []
+    test_for_plot_baseline = []
+    ori_test = []
+
+    def get_points_1():
+        points = []
+        mask = []
+        for i in range(1):
+            m = np.zeros((pred_hour, variable_num, 1), dtype=np.uint8)  # 24,4,1
+            x1 = np.random.randint(0, pred_hour - pred_hour + 1, 1)
+
+            m[:, -2] = 1
+            mask.append(m)
+        return np.array(mask)
+
+    for i in range((length - pred_hour) // windows_length + 1):        
+        data_1 = np.load(f'/kaggle/input/when2heat-gf/task_{building}_data_solar_test_{pred_hour}.npy')
+        data_1 = data_1[i]
+
+        data_1 = data_1.reshape(1, pred_hour, variable_num, 1)
+        mask_batch = get_points_1()
+        generator_input_1 = data_1 * (1 - mask_batch)
+
+        test_pred_1 = generator.predict(generator_input_1)
+
+        for j in range(test_pred_1.shape[1]):
+            test_for_plot.append(test_pred_1[0][j][variable_num - temporal_num - 1][0])
+            ori_test.append(data_1[0][j][variable_num - temporal_num - 1][0])
+
+    min_data = np.load(f'/kaggle/input/min-max/{building}_min.npy')
+    max_data = np.load(f'/kaggle/input/min-max/{building}_max.npy')
+    test_for_plot = np.array(test_for_plot) * (max_data - min_data) + min_data
+    ori_test = np.array(ori_test) * (max_data - min_data) + min_data
+    
+    nrmse = np.sqrt(np.mean((np.array(test_for_plot) - np.array(ori_test)) ** 2)) / (np.max(np.array(ori_test)) - np.min(np.array(ori_test)))
+    print(nrmse)
+
+    plt.plot(test_for_plot, label='Pred')
+    plt.plot(ori_test, label='Ori')
+    plt.legend()
+    plt.show()
+
+    plt.plot(test_for_plot[24*10:24*14], label='Pred')
+    plt.plot(ori_test[24*10:24*14], label='Ori')
+    plt.legend()
+    plt.show()
+
+test(building, 0)
