@@ -4,8 +4,6 @@ import datetime
 
 import tensorflow as tf
 import numpy as np
-import tracemalloc
-import time
 
 if (tf.test.is_gpu_available):
     print("GPU")
