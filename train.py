@@ -196,7 +196,7 @@ for building in building_lst:
           return ds.map(lambda batch: tf.cast(batch,tf.float32),
                        num_parallel_calls=tf.data.AUTOTUNE)
 
-      batch_size = 64
+      batch_size = 32
       dataset = make_dataset(x_train, batch_size = batch_size)
       ds_iter     = iter(dataset)
       steps_per_epoch = int(len(x_train) / batch_size)
