@@ -33,7 +33,7 @@ temporal_num = 1
 building_lst = ['AT_SFH', 'AT_COM', 'CH_SFH', 'CH_COM', 'DE_SFH', 'DE_COM']
 
 for building in building_lst:
-      x_train = np.load(f'/kaggle/input/when2heat-gf/task_{building}_data_solar_24.npy')
+      x_train = np.load(f'/kaggle/input/when2heat/task_{building}_data_solar_24.npy')
 
       def upsample(filters, size, strides, apply_batchnorm=True, apply_dropout=False):
         initializer = tf.random_normal_initializer(0., 0.02)
@@ -280,7 +280,7 @@ def test(building, num):
         return np.array(mask)
 
     for i in range((length - pred_hour) // windows_length + 1):        
-        data_1 = np.load(f'/kaggle/input/when2heat-gf/task_{building}_data_solar_test_{pred_hour}.npy')
+        data_1 = np.load(f'/kaggle/input/when2heat/task_{building}_data_solar_test_{pred_hour}.npy')
         data_1 = data_1[i]
 
         data_1 = data_1.reshape(1, pred_hour, variable_num, 1)
